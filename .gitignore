@@ -1,0 +1,38 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Private/runtime data — never publish recordings, chat state, screenshots,
+# provider caches, or derived data from a personal music account.
+data/
+uploads/
+recordings/
+screenshots/
+cache/
+*.sqlite
+*.sqlite3
+*.db
+*.log
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node and browser builds
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+
+# Editor/agent-local state
+.claude/
+.codex/
+.DS_Store

@@ -1,0 +1,13 @@
+{
+  "name": "@sing-along-companion/audio-analysis",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Dependency-free helpers for deriving a compact acoustic outline from authorized PCM.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

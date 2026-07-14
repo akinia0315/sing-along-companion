@@ -12,6 +12,8 @@ It is intentionally provider-neutral. This repository contains no music
 catalog, account cookies, recordings, lyrics, user profiles, keys, screenshots,
 or chat history. The included browser demo uses synthetic data only.
 
+中文说明见：[中文使用手册](docs/USAGE.zh-CN.md)。
+
 ## What is included
 
 ```text

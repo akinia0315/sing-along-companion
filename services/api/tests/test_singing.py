@@ -11,6 +11,8 @@ def test_reference_comparison_is_relative_not_a_score() -> None:
     assert observation["available"] is True
     assert observation["scope"] == "relative_contour_only"
     assert observation["overall"]["contour_relation"] == "closely_followed"
+    assert observation["overall"]["key_relation"] == "lower_than_reference"
+    assert observation["overall"]["median_key_offset_semitones"] < 0
     assert "score" not in observation
     assert contour_relation([60, 61, 62], [72, 73, 74]) == "closely_followed"
 

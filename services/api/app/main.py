@@ -48,7 +48,7 @@ async def _context_for_room(room_id: str, *, lyrics: bool, analysis: bool, notes
     room = await rooms.snapshot(room_id)
     song_id = room.current_song.id if room.current_song else ""
     lyric_lines = await rooms.lyrics(song_id) if lyrics else []
-    profile = await rooms.profile(song_id) if analysis else None
+    profile = (await references.profile(song_id) or await rooms.profile(song_id)) if analysis else None
     recent_notes = await rooms.recent_notes() if notes else []
     return build_listening_context(
         room,
@@ -119,17 +119,18 @@ async def lyrics(song_id: str) -> dict[str, Any]:
 
 @app.get("/api/listen/songs/{song_id}/reference-pitch")
 async def reference_pitch(song_id: str) -> dict[str, Any]:
-    frames = await references.get(song_id)
+    analysis = await references.analysis(song_id)
+    frames = analysis.frames if analysis else []
     return {
         "status": "ready" if frames else "missing",
-        "source": "synthetic_demo" if frames else None,
+        "source": analysis.source if analysis else None,
         "pitch": {"frames": [frame.model_dump() for frame in frames]} if frames else None,
     }
 
 
 @app.get("/api/listen/songs/{song_id}/profile")
 async def profile(song_id: str) -> dict[str, Any]:
-    result = await rooms.profile(song_id)
+    result = await references.profile(song_id) or await rooms.profile(song_id)
     return {"status": "ready" if result else "missing", "profile": result}
 
 

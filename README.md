@@ -3,7 +3,8 @@
 A privacy-first reference implementation for three connected music features:
 
 - local microphone pitch tracing for a sing-along;
-- a compact, non-scoring comparison against an optional reference contour;
+- authorized-original-track pitch extraction and a compact comparison against
+  its full-mix reference contour;
 - a bridge that lets the listening room contribute bounded lyric and playback
   context to an existing main chat timeline.
 
@@ -27,9 +28,9 @@ The web app has two deliberately different modes:
 | Local pitch view | Nothing | Browser memory only |
 | Share pitch trace | Sparse F0 points only; no audio or transcript | Short in-memory receipt window |
 
-The separate `Chat voice upload` feature from the original private product is
-not part of this repository. If you add audio upload later, treat it as a new
-consent and privacy surface rather than silently reusing the pitch-share flow.
+Audio-upload chat is intentionally not part of this repository. If you add it
+later, treat it as a new consent and privacy surface rather than silently
+reusing the pitch-share flow.
 
 ## Run locally
 
@@ -71,6 +72,31 @@ or persona:
 `services/audio-analysis` accepts locally authorized PCM and returns only a
 derived contour/profile. It does not ship a catalog connector, streaming
 credentials, copyrighted audio, or lyric data.
+
+For a real original-track reference, install `ffmpeg` and run the local-only
+analyzer against an audio file you are authorized to analyze:
+
+```bash
+cd services/audio-analysis
+npm run analyze-file -- \
+  --input /path/to/authorized-track.mp3 \
+  --song-id demo-signal \
+  --output ../../data/reference-contours/demo-signal.json
+```
+
+It decodes the file transiently, writes only a derived JSON artifact (sparse
+dominant-F0 frames plus a compact acoustic outline), and never uploads the
+source file. `data/` is ignored by Git. Start the API with the artifact folder:
+
+```bash
+REFERENCE_CONTOUR_DIRECTORY=./data/reference-contours \
+  .venv/bin/uvicorn app.main:app --app-dir services/api --reload --port 8000
+```
+
+The API then serves those frames to the browser and uses the same timeline to
+compare opt-in sung F0 points. The comparison reports both relative contour
+movement and a neutral median key offset; it is not a vocal stem, a score, or
+an accuracy claim.
 
 Before connecting any music service, verify its terms and content rights. Do
 not commit provider cookies, stream URLs, lyric caches, recordings, or derived

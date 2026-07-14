@@ -19,6 +19,25 @@ Browser microphone
                          visible reply in main chat timeline
 ```
 
+```text
+Authorized local audio file
+  │
+  ├─ ffmpeg decode (transient process memory; no source-file upload)
+  ▼
+Original-track analyzer
+  │
+  ├─ sparse full-mix dominant-F0 frames
+  └─ compact acoustic outline
+  ▼
+ignored local reference JSON ──→ ReferenceContourRepository ──→ same-timeline comparison
+```
+
+The original-track analyzer is deliberately a local CLI, not an HTTP endpoint.
+It has no music catalog, account integration, or URL fetcher. The reference is
+a dominant contour from a complete mix, therefore comparison is limited to
+aligned movement and an optional neutral key offset — never a vocal-stem or
+pitch-accuracy score.
+
 ## Room context injection
 
 `ListeningContextBuilder` reads the current room snapshot and returns only the

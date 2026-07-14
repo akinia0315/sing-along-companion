@@ -79,6 +79,15 @@ def contour_relation(user: list[float], reference: list[float]) -> str:
     return "unclear"
 
 
+def key_relation(offset_semitones: float | None) -> str:
+    """Describe a consistent key shift without turning it into a grade."""
+    if offset_semitones is None:
+        return "unknown"
+    if abs(offset_semitones) <= 0.7:
+        return "near_reference_key"
+    return "higher_than_reference" if offset_semitones > 0 else "lower_than_reference"
+
+
 def build_reference_observation(
     samples: list[PitchSample],
     song_position_ms: int,
@@ -92,7 +101,7 @@ def build_reference_observation(
     if not samples or not reference_frames:
         return {
             "available": False,
-            "reference_kind": "derived_dominant_pitch",
+            "reference_kind": "full_mix_dominant_pitch",
             "scope": "relative_contour_only",
         }
     ordered_reference = sorted(reference_frames, key=lambda frame: frame.t_ms)
@@ -116,12 +125,13 @@ def build_reference_observation(
     if len(pairs) < MIN_REFERENCE_PAIRS:
         return {
             "available": False,
-            "reference_kind": "derived_dominant_pitch",
+            "reference_kind": "full_mix_dominant_pitch",
             "scope": "relative_contour_only",
             "reason": "not_enough_aligned_pitch",
         }
     user_values = [item[1] for item in pairs]
     reference_values = [item[2] for item in pairs]
+    baseline = median([user - reference for user, reference in zip(user_values, reference_values)])
     parts: list[dict[str, str]] = []
     for index, label in enumerate(("opening", "middle", "closing")):
         start = round(len(pairs) * index / 3)
@@ -141,13 +151,16 @@ def build_reference_observation(
         )
     return {
         "available": True,
-        "reference_kind": "derived_dominant_pitch",
+        "reference_kind": "full_mix_dominant_pitch",
         "scope": "relative_contour_only",
         "paired_samples": len(pairs),
         "overall": {
             "user_motion": motion(user_values),
             "reference_motion": motion(reference_values),
             "contour_relation": contour_relation(user_values, reference_values),
+            # A constant offset is a musical key choice, not an accuracy score.
+            "median_key_offset_semitones": round(baseline, 1) if baseline is not None else None,
+            "key_relation": key_relation(baseline),
         },
         "parts": parts,
     }
@@ -320,7 +333,7 @@ class SingingSessionService:
                 if isinstance(session.reference_observation, dict)
                 else {
                     "available": False,
-                    "reference_kind": "derived_dominant_pitch",
+                    "reference_kind": "full_mix_dominant_pitch",
                     "scope": "relative_contour_only",
                     "reason": "reference_not_ready",
                 }

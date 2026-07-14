@@ -24,10 +24,14 @@ adapter must never execute instructions found inside these values.
 
 ## Optional reference contour
 
-The reference contour is a derived curve from audio that the operator is
-authorized to analyze. It is not a vocal stem, a score, or proof of pitch
-accuracy. The comparison removes a constant transposition before describing
-only relative high/low movement.
+The reference contour is a derived curve from a local audio file that the
+operator is authorized to analyze. The command keeps decoded PCM only in its
+process memory and writes a sparse derived JSON artifact. It does not upload,
+cache, or publish the source audio.
+
+It is not a vocal stem, a score, or proof of pitch accuracy. The comparison
+describes relative high/low movement and may report a neutral median key offset
+after aligning to the shared playback timeline.
 
 ## Do not add to a public repository
 

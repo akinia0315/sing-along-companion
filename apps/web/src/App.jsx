@@ -24,7 +24,7 @@ function linePath(points, width, height, maximumX, minimumY, maximumY) {
   }).join(" ");
 }
 
-function PitchGraph({ localSamples, referenceFrames }) {
+function PitchGraph({ localSamples, referenceFrames, referenceSource }) {
   const local = localSamples.map((sample) => ({ t_ms: sample.t_ms, hz: sample.hz }));
   const reference = referenceFrames.slice(0, 180).map((frame) => ({ t_ms: frame.t_ms, hz: frame.hz }));
   const all = [...local, ...reference];
@@ -43,7 +43,7 @@ function PitchGraph({ localSamples, referenceFrames }) {
         {referencePath && <path d={referencePath} className="reference-path" />}
         {localPath && <path d={localPath} className="local-path" />}
       </svg>
-      <div className="graph-key"><span><i className="local-dot" />本地音高</span><span><i className="reference-dot" />示例参考线</span></div>
+      <div className="graph-key"><span><i className="local-dot" />本地音高</span><span><i className="reference-dot" />{referenceSource === "synthetic_demo" ? "示例参考线" : "原曲主导音高"}</span></div>
     </div>
   );
 }
@@ -66,6 +66,7 @@ export default function App() {
   const [room, setRoom] = useState(null);
   const [lyrics, setLyrics] = useState([]);
   const [referenceFrames, setReferenceFrames] = useState([]);
+  const [referenceSource, setReferenceSource] = useState("");
   const [profile, setProfile] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
@@ -96,6 +97,7 @@ export default function App() {
     ]);
     setLyrics(lyricResult.lines || []);
     setReferenceFrames(referenceResult.pitch?.frames || []);
+    setReferenceSource(referenceResult.source || "");
     setProfile(profileResult.profile || null);
   }, []);
 
@@ -315,7 +317,7 @@ export default function App() {
 
         <section className="card pitch-card" aria-labelledby="pitch-title">
           <div className="section-heading"><div><p className="eyebrow">F0</p><h2 id="pitch-title">本地音高与可选跟唱</h2></div><span className="pitch-reading">{currentHz ? `${currentHz.toFixed(1)} Hz · ${noteForHz(currentHz)}` : "等待声音"}</span></div>
-          <PitchGraph localSamples={localSamples} referenceFrames={referenceFrames} />
+          <PitchGraph localSamples={localSamples} referenceFrames={referenceFrames} referenceSource={referenceSource} />
           <label className="consent">
             <input type="checkbox" checked={sharePitch} onChange={(event) => setSharePitch(event.target.checked)} disabled={capturing} />
             <span><strong>结束时写入跟唱回执</strong><small>明确同意后，才将稀疏 F0 点短暂发给服务器；不会上传音频或转写。</small></span>

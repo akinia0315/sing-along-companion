@@ -5,7 +5,8 @@
   "type": "module",
   "description": "Dependency-free helpers for deriving a compact acoustic outline from authorized PCM.",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "analyze-file": "node src/analyze-file.mjs"
   },
   "engines": {
     "node": ">=20"

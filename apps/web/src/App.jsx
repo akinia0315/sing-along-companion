@@ -48,6 +48,60 @@ function PitchGraph({ localSamples, referenceFrames, referenceSource }) {
   );
 }
 
+const ENERGY_LABEL = { low: "收着", medium: "平稳", high: "撑开" };
+const MOTION_LABEL = {
+  spacious: "舒展", moderate: "中等", active: "活跃",
+  rising: "偏上行", falling: "偏回落", steady: "较平稳",
+};
+const TIMBRE_LABEL = {
+  warm: "低频感较多", smooth: "平滑",
+  balanced: "高低频较均衡", bright: "高频感较多", bright_or_noisy: "高频／噪声较多",
+};
+const ARC_LABEL = {
+  rising: "一路往后抬升", falling: "从前段慢慢回落",
+  arch: "中段拱起一个高点", valley: "中段收束后再展开", steady: "整体比较平稳",
+};
+const SECTION_LABEL = { early: "前段", opening: "前段", middle: "中段", late: "后段", closing: "后段" };
+
+function SongInsightPanel({ profile, referenceSource }) {
+  const energy = profile?.energy || {};
+  const melody = profile?.melody || {};
+  const segments = Array.isArray(energy.segments) ? energy.segments.slice(0, 12) : [];
+  const range = Number(melody.range_semitones);
+  const motion = MOTION_LABEL[profile?.motion?.label] || MOTION_LABEL[melody.movement] || "—";
+  const timbre = TIMBRE_LABEL[profile?.timbre?.label] || "—";
+  const melodyMotion = MOTION_LABEL[melody.movement] || "—";
+  const source = referenceSource === "synthetic_demo" ? "合成演示数据" : "已授权原曲的派生轮廓";
+
+  return (
+    <section className="card insight-card" aria-labelledby="insight-title">
+      <div className="section-heading">
+        <div><p className="eyebrow">SONG INSIGHT</p><h2 id="insight-title">歌曲理解</h2></div>
+        <span className="insight-source">{source}</span>
+      </div>
+      <p className="insight-summary">
+        {profile ? `${motion}律动 · ${timbre} · ${ARC_LABEL[energy.movement] || "动态仍在整理"}` : "等待原曲分析"}
+      </p>
+      <div className="insight-energy" aria-label="整首歌曲能量走向">
+        <div><span>能量走向</span><small>{ENERGY_LABEL[energy.start] || "—"} → {ENERGY_LABEL[energy.end] || "—"}</small></div>
+        <div className="insight-bars">
+          {(segments.length ? segments : Array.from({ length: 8 }, () => ({ level: 8 }))).map((segment, index) => (
+            <i key={`${segment.start_ms || index}-${index}`} style={{ "--energy": `${Math.max(5, Math.min(100, Number(segment.level) || 0))}%` }} />
+          ))}
+        </div>
+        <p>{ARC_LABEL[energy.movement] || "这首的动态暂时难以稳定判断"}{SECTION_LABEL[energy.peak] ? `，高点偏${SECTION_LABEL[energy.peak]}` : ""}。</p>
+      </div>
+      <div className="insight-grid">
+        <div><span>律动密度</span><b>{motion}</b></div>
+        <div><span>频段质地</span><b>{timbre}</b></div>
+        <div><span>旋律走向</span><b>{melodyMotion}</b></div>
+        <div><span>旋律音域</span><b>{Number.isFinite(range) ? `约 ${range.toFixed(1)} 半音` : "—"}</b></div>
+      </div>
+      <p className="insight-tip">从完整混音的能量、律动、频段和主导旋律估计；不把频段当情绪，也不宣称人声分离精度。</p>
+    </section>
+  );
+}
+
 function MessageList({ messages }) {
   if (!messages.length) return <p className="empty-copy">在这里问“现在唱到哪一句？”试试歌词上下文注入。</p>;
   return (
@@ -328,6 +382,8 @@ export default function App() {
           </div>
           <p className="privacy-line">麦克风仅由浏览器读取。未勾选时，音高点也不会离开浏览器。</p>
         </section>
+
+        <SongInsightPanel profile={profile} referenceSource={referenceSource} />
 
         <section className="card chat-card" aria-labelledby="chat-title">
           <div className="section-heading"><div><p className="eyebrow">MAIN CHAT</p><h2 id="chat-title">同一条聊天线</h2></div></div>
